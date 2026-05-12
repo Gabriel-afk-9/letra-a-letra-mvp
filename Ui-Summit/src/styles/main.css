@@ -1,0 +1,6 @@
+/* src/styles/main.css */
+@import url('./variables.css');
+@import url('./reset.css');
+@import url('../components/board.css');
+@import url('../components/cell.css');
+@import url('../pages/game.css');
