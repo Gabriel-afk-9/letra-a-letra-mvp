@@ -1,57 +1,3 @@
-// import { store } from "../state/store.js";
-
-// class WebSocketManager {
-//     constructor() {
-//         this.ws = null;
-//         this.wsUrl = "ws://localhost:8080/ws/game?token=";
-//     }
-
-//     connect(token, userId) {
-//         this.ws = new WebSocket(`${this.wsUrl}${token}`);
-
-//         this.ws.onopen = () => {
-//             console.log("🟢 Conectado ao Jogo");
-//             this.send({ type: "MATCHMAKING_GAME", gameMode: "NORMAL" });
-//             store.state.gameStatus = 'MATCHMAKING';
-//         };
-
-//         this.ws.onmessage = (event) => {
-//             const msg = JSON.parse(event.data);
-//             this.handleMessage(msg, userId);
-//         };
-
-//         this.ws.onclose = () => console.log("🔴 Desconectado");
-//     }
-
-//     handleMessage(msg, myUserId) {
-//         if (msg.event === "MATCHMAKING_GAME" && msg.status === "FOUNDED") {
-//             store.state.tokenGameId = msg.tokenGameId;
-//             store.state.currentTurnPlayerId = msg.data.currentTurnPlayerId;
-            
-//             const opponent = msg.data.players.find(p => p.id !== myUserId);
-//             if (opponent) store.state.opponent = opponent;
-            
-//             store.state.gameStatus = 'PLAYING';
-//         }
-
-//         if (msg.data && msg.data.board) {
-//             store.state.board = msg.data.board;
-//         }
-
-//         if (msg.event === "GAME_OVER") {
-//             store.state.gameStatus = 'GAME_OVER';
-//         }
-//     }
-
-//     send(payload) {
-//         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-//             this.ws.send(JSON.stringify(payload));
-//         }
-//     }
-// }
-
-// export const wsManager = new WebSocketManager();
-
 import { store } from "../state/store.js";
 
 const wsUrl = "ws://localhost:8080/ws/game?token=";
@@ -62,57 +8,66 @@ export const wsManager = {
         gameWs = new WebSocket(`${wsUrl}${token}`);
 
         gameWs.onopen = () => {
-            console.log("🟢 WebSocket Aberto. Pedindo partida...");
-            gameWs.send(JSON.stringify({
-                type: "MATCHMAKING_GAME",
-                gameMode: "NORMAL"
-            }));
+            console.log("🟢 WebSocket Aberto.");
+            this.send({ type: "MATCHMAKING_GAME", gameMode: "CATACLYSM" });
         };
 
         gameWs.onmessage = (event) => {
             const msg = JSON.parse(event.data);
-            console.log("📩 WS Recebido:", msg);
+            console.log("📩 Evento Recebido:", msg.event, msg);
 
-            // 1. Quando o jogo é encontrado no Matchmaking
             if (msg.event === "MATCHMAKING_GAME" && msg.status === "FOUNDED") {
-                let opponentName = "Desafiante";
-
-                if (msg.data && msg.data.players) {
-                    const opponent = msg.data.players.find(p => p.id != userId);
-                    if (opponent) opponentName = opponent.nickname;
-                }
-
-                // Salva as credenciais da partida
+                const opponentInfo = msg.data.players.find(p => p.id !== userId);
+                
                 store.state.tokenGameId = msg.tokenGameId;
-                store.state.currentTurnPlayerId = msg.data.currentTurnPlayerId;
-                store.state.opponentName = opponentName;
+                store.state.opponent = opponentInfo ? 
+                    { id: opponentInfo.id, name: opponentInfo.nickname } : 
+                    { id: null, name: "Desafiante" };
+                
+                this.syncGameState(msg.data);
 
-                // 🚨 AQUI ESTÁ A CORREÇÃO: Salva o tabuleiro inicial na Store!
-                if (msg.data && msg.data.board) {
-                    store.state.board = msg.data.board;
-                }
-
-                // Muda de página após 4 segundos
-                setTimeout(() => {
-                    store.state.currentPage = 'game';
-                }, 4000);
+                store.state.currentPage = 'found';
             }
 
-            // 2. Quando houver uma jogada ou o turno expirar (atualiza o board)
-            // Se qualquer mensagem do WS trouxer um board novo, atualizamos a Store!
             if (msg.data && msg.data.board) {
-                store.state.board = msg.data.board;
+                this.syncGameState(msg.data);
             }
-            
-            // Atualiza de quem é o turno caso o servidor mande
-            if (msg.data && msg.data.currentTurnPlayerId) {
-                store.state.currentTurnPlayerId = msg.data.currentTurnPlayerId;
-            }
-        };
 
-        gameWs.onerror = (err) => {
-            console.error("🔴 Erro no WebSocket:", err);
-            store.state.currentPage = 'home';
+            if (msg.event === "TURN_EXPIRED") {
+                store.state.currentTurnPlayerId = msg.data.currentTurnPlayerId;
+                this.updateTurnMessage();
+            }
+
+            if (msg.event === "REMOVED_BECAUSE_INACTIVITY") {
+                store.state.gameMessage = "REMOVIDO POR INATIVIDADE!";
+            }
+
+            if (msg.event === "GAME_OVER") {
+                const isWinner = msg.data.winner.id === userId;
+                store.state.gameMessage = isWinner ? "🏆 VOCÊ VENCEU!" : "💀 VOCÊ PERDEU!";
+                store.state.tokenGameId = null;
+            }
         };
+    },
+
+    syncGameState(data) {
+        if (data.board) store.state.board = data.board;
+        if (data.words) store.state.words = data.words;
+        if (data.players) store.state.players = data.players;
+        if (data.currentTurnPlayerId) {
+            store.state.currentTurnPlayerId = data.currentTurnPlayerId;
+            this.updateTurnMessage();
+        }
+    },
+
+    updateTurnMessage() {
+        const isMyTurn = store.state.currentTurnPlayerId === store.state.user.id;
+        store.state.gameMessage = isMyTurn ? "🟢 SEU TURNO" : "🔴 TURNO DO OPONENTE";
+    },
+
+    send(payload) {
+        if (gameWs && gameWs.readyState === WebSocket.OPEN) {
+            gameWs.send(JSON.stringify(payload));
+        }
     }
 };

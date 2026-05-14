@@ -1,7 +1,6 @@
 class ReactiveStore {
     constructor(initialState) {
         this.listeners = {};
-        
         this.state = new Proxy(initialState, {
             set: (target, key, value) => {
                 target[key] = value;
@@ -12,9 +11,7 @@ class ReactiveStore {
     }
 
     subscribe(key, callback) {
-        if (!this.listeners[key]) {
-            this.listeners[key] = [];
-        }
+        if (!this.listeners[key]) this.listeners[key] = [];
         this.listeners[key].push(callback);
     }
 
@@ -26,10 +23,13 @@ class ReactiveStore {
 }
 
 export const store = new ReactiveStore({
-    currentPage: 'home', // 'home', 'matchmaking', 'game'
+    currentPage: 'home',
     user: { id: null, token: null, name: null },
-    opponentName: '???',
+    opponent: { id: null, name: '???' },
     tokenGameId: null,
     currentTurnPlayerId: null,
-    board:[]
+    board: [],
+    words: [],
+    players: [],
+    gameMessage: 'Aguardando...' // Novo: Feedback visual (ex: Seu turno, Fim de jogo)
 });
