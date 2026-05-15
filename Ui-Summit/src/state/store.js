@@ -31,5 +31,10 @@ export const store = new ReactiveStore({
     board: [],
     words: [],
     players: [],
-    gameMessage: 'Aguardando...' // Novo: Feedback visual (ex: Seu turno, Fim de jogo)
+    endGameState: { 
+        show: false, 
+        title: '', 
+        message: '', 
+        type: ''
+    } 
 });

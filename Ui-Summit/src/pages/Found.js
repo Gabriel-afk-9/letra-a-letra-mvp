@@ -12,14 +12,14 @@ export class FoundPage extends HTMLElement {
                     
                     <div class="found-vs-box">
                         <div class="found-player">
-                            <img class="found-avatar found-avatar--local" src="public/avatar-placeholder.png" alt="Seu Avatar">
+                            <img class="found-avatar found-avatar--local" src="assets/avatar/avatar-1.png" alt="Seu Avatar">
                             <p class="found-name">${myName}</p>
                         </div>
                         
                         <span class="found-vs-badge">VS</span>
                         
                         <div class="found-player">
-                            <img class="found-avatar found-avatar--opponent" src="public/avatar-placeholder.png" alt="Avatar do Oponente">
+                            <img class="found-avatar found-avatar--opponent" src="assets/avatar/avatar-1.png" alt="Avatar do Oponente">
                             <p class="found-name">${oppName}</p>
                         </div>
                     </div>

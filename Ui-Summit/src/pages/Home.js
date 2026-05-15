@@ -1,4 +1,4 @@
-import { AuthService } from "../services/authService.js";
+import { AuthService } from "../services/auth/authService.js";
 import { store } from "../state/store.js";
 
 class HomePage extends HTMLElement {
@@ -8,7 +8,7 @@ class HomePage extends HTMLElement {
                 <div class="card">
                     <img src="public/logo2.png" alt="Logo Letra a Letra" class="logo" />
                     <p class="label">Insira seu Nome</p>
-                    <input type="text" maxlength=10 placeholder="ex: Player123..." class="input" id="name" />
+                    <input type="text" maxlength=10 placeholder="No mínimo 5 letras.." class="input" id="name" />
                     <button class="button" id="play">Jogar</button>
                 </div>
             </div>
@@ -20,8 +20,8 @@ class HomePage extends HTMLElement {
         playBtn.addEventListener("click", async () => {
             const testName = nameInput.value.trim();
 
-            if (testName.length < 3|| testName.length > 10) {
-                alert("O nickname deve ter entre 3 e 15 caracteres.");
+            if (testName.length < 5|| testName.length > 10) {
+                alert("O nickname deve ter entre 5 e 15 caracteres.");
                 return;
             }
 

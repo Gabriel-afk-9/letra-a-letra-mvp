@@ -1,5 +1,5 @@
 import { store } from "../state/store.js";
-import { wsManager } from "../websocket/socket.js";
+import { wsManager } from "../websocket/socket/socketManager.js";
 
 class MatchmakingPage extends HTMLElement {
     connectedCallback() {

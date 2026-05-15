@@ -1,5 +1,4 @@
-player-card,
-active-player-card {
+player-card {
     display: block;
     width: 400px;
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -76,6 +75,7 @@ active-player-card {
     color: white;
     font-size: 25px;
     margin: 0 0 8px 0;
+    -webkit-text-stroke: 1px #464646;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -83,14 +83,14 @@ active-player-card {
 
 .power-dots {
     display: flex;
-    gap: 6px;
+    gap: 10px;
 }
 
 .dot {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    border: 2px solid white;
+    outline: 3px solid rgb(0, 0, 0, 0.5);
     background-color: transparent;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

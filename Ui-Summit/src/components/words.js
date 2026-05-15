@@ -2,33 +2,37 @@ import { store } from "../state/store.js";
 
 export class WordsComponent extends HTMLElement {
     connectedCallback() {
-        this.className = "words-container";
-        
-        store.subscribe('words', (newWords) => this.render(newWords));
-        
-        this.render(store.state.words);
+        this.innerHTML = `
+            <div class="words-container" id="words-list"></div>
+        `;
+        this.listEl = this.querySelector('#words-list');
+
+        store.subscribe('words', (words) => this.render(words));
+
+        if (store.state.words && store.state.words.length > 0) {
+            this.render(store.state.words);
+        }
     }
 
     render(words) {
-        if (!words || words.length === 0) {
-            this.innerHTML = `<div class="words"><p>Aguardando palavras...</p></div>`;
-            return;
-        }
+        if (!words) return;
 
-        let html = '<div class="words">';
-        
+        let html = '';
         words.forEach(w => {
-            const isFound = w.found ? 'text-decoration: line-through; opacity: 0.5;' : '';
+            let classes = "word-item";
             
-            html += `
-                <p class="word" style="${isFound}">
-                    ${w.word}
-                </p>
-            `;
+            if (w.found) {
+                classes += " found";
+                
+                if (w.foundBy) {
+                    classes += w.foundBy === store.state.user.id ? " found-me" : " found-opponent";
+                }
+            }
+
+            html += `<span class="${classes}">${w.word}</span>`;
         });
-        
-        html += '</div>';
-        this.innerHTML = html;
+
+        this.listEl.innerHTML = html;
     }
 }
 customElements.define("words-component", WordsComponent);

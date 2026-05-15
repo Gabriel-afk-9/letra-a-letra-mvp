@@ -1,4 +1,5 @@
 import { store } from "../state/store.js";
+import { GameService } from "../services/game/gameService.js"
 import "../components/player.js";
 import "../components/words.js";
 import "../components/board.js";
@@ -7,7 +8,6 @@ import "../pages/Home.js";
 import "../pages/Game.js";
 import "../pages/Matchmaking.js";
 import "../pages/Found.js";
-import "../components/active-player.js";
 
 const root = document.body;
 
@@ -27,6 +27,12 @@ store.subscribe('currentPage', (page) => {
 
         root.classList.remove('fade-out');
     }, 300);
-}); 
+});
+
+window.addEventListener('beforeunload', () => {
+    if (store.state.tokenGameId) {
+        GameService.leaveGame(true);
+    }
+});
 
 store.state.currentPage = 'home';

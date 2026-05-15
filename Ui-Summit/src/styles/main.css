@@ -55,11 +55,6 @@
     font-weight: bold;
 }
 
-active-player-card {
-    display: block;
-    width: 100%;
-    max-width: 350px;
-}
 
 .dynamic-card {
     display: flex;

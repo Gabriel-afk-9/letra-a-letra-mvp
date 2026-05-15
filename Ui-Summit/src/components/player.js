@@ -11,7 +11,7 @@ export class PlayerCard extends HTMLElement {
         this.innerHTML = `
             <div class="active-card-container">
                 <div class="player-card" id="dynamic-card">
-                    <img class="player-card__avatar" id="dyn-avatar" src="../../public/avatar-placeholder.png" alt="Avatar">
+                    <img class="player-card__avatar" id="dyn-avatar" src="assets/avatar/avatar-1.png" alt="Avatar">
                     
                     <div class="player-card__info">
                         <h3 class="player-card__name" id="dyn-name">...</h3>
@@ -96,4 +96,5 @@ export class PlayerCard extends HTMLElement {
         }, 300);
     }
 }
-customElements.define("active-player-card", PlayerCard);
+
+customElements.define("player-card", PlayerCard);
