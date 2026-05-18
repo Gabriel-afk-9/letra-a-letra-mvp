@@ -36,5 +36,13 @@ export const store = new ReactiveStore({
         title: '', 
         message: '', 
         type: ''
-    } 
+    },
+    activePower: null,
+    playerEffects: {
+        blind: false,
+        spy: false,
+        freeze: false,
+        immunity: false,
+        detect_traps: false,
+    }
 });

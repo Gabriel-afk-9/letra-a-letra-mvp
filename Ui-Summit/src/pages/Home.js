@@ -5,10 +5,13 @@ class HomePage extends HTMLElement {
     connectedCallback() {
         this.innerHTML = `
             <div class="container">
+            <div id="login-error-popup" class="login-error-popup">
+                    Erro ao conectar. Tente novamente.
+                </div>
                 <div class="card">
                     <img src="public/logo2.png" alt="Logo Letra a Letra" class="logo" />
                     <p class="label">Insira seu Nome</p>
-                    <input type="text" maxlength=10 placeholder="No mínimo 5 letras.." class="input" id="name" />
+                    <input type="text" maxlength=10 placeholder="No mínimo 5 letras.." class="input" id="name" autocomplete="off" />
                     <button class="button" id="play">Jogar</button>
                 </div>
             </div>
@@ -16,12 +19,21 @@ class HomePage extends HTMLElement {
 
         const playBtn = this.querySelector("#play");
         const nameInput = this.querySelector("#name");
+        const errorPopup = this.querySelector("#login-error-popup");
 
         playBtn.addEventListener("click", async () => {
+            playBtn.classList.add("btn-clicked");
+            setTimeout(() => playBtn.classList.remove("btn-clicked"), 150);
+
             const testName = nameInput.value.trim();
 
             if (testName.length < 5|| testName.length > 10) {
-                alert("O nickname deve ter entre 5 e 15 caracteres.");
+                nameInput.classList.add("input-error");
+                
+                setTimeout(() => {
+                    nameInput.classList.remove("input-error");
+                }, 400);
+
                 return;
             }
 
@@ -33,7 +45,12 @@ class HomePage extends HTMLElement {
             if (success) {
                 store.state.currentPage = 'matchmaking';
             } else {
-                alert("Erro ao realizar login. Tente novamente.");
+                errorPopup.classList.add("show");
+                
+                setTimeout(() => {
+                    errorPopup.classList.remove("show");
+                }, 3500);
+
                 playBtn.disabled = false;
                 playBtn.innerText = "Jogar";
             }

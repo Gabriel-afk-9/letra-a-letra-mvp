@@ -5,6 +5,7 @@ import "../components/player.js";
 import "../components/words.js";
 import "../components/inventory.js";
 import "../components/modal.js";
+import "../components/cell.js";
 
 export class GamePage extends HTMLElement {
     connectedCallback() {
@@ -23,7 +24,7 @@ export class GamePage extends HTMLElement {
         `;
 
         this.querySelector('#btn-leave').addEventListener('click', () => {
-            if (confirm("Tem certeza qyue deseja abandonar a partida? Você receberá uma derrota.")) {
+            if (confirm("Tem certeza que deseja abandonar a partida? Você receberá uma derrota.")) {
                 GameService.leaveGame();
             }
         });

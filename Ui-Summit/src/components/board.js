@@ -4,13 +4,17 @@ import "./cell.js";
 export class BoardComponent extends HTMLElement {
     connectedCallback() {
         this.className = "board-grid";
-        store.subscribe('board', (newBoard) => this.render(newBoard));
-        this.render(store.state.board);
+        store.subscribe('board', () => this.render());
+        store.subscribe('foundCellsMap', () => this.render());
+        store.subscribe('playerEffects', () => this.render());
+        this.render();
     }
 
-    render(boardData) {
+    render() {
+        const boardData = store.state.board;
         if (!boardData || boardData.length === 0) return;
 
+        const foundMap = store.state.foundCellsMap || {};
         let html = '';
         
         boardData.forEach((row, X) => {
@@ -18,15 +22,17 @@ export class BoardComponent extends HTMLElement {
                 
                 const ownerId = cellData.effect ? cellData.effect.ownerId : '';
                 const effectType = cellData.effect ? cellData.effect.effect : '';
-                const revealedBy = cellData.revealedBy || '';
+                
+                const wordOwnerId = foundMap[`${X},${Y}`];
 
                 html += `
-                    <cell-component 
+                    <cell-component
                         x="${X}" 
                         y="${Y}" 
                         letter="${cellData.letter || ''}" 
                         revealed="${cellData.revealed}"
-                        revealed-by="${revealedBy}"
+                        revealed-by="${cellData.revealedBy || ''}" 
+                        found-by="${wordOwnerId || ''}" 
                         effect-type="${effectType}"
                         effect-owner="${ownerId}"
                         remaining-clicks="${cellData.effect?.remainingClicks || ''}">

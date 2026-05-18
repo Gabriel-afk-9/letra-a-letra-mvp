@@ -3,7 +3,9 @@ import { store } from "../state/store.js";
 export class WordsComponent extends HTMLElement {
     connectedCallback() {
         this.innerHTML = `
-            <div class="words-container" id="words-list"></div>
+            <div class="words-container">
+                <div class="words" id="words-list"></div>
+            </div>
         `;
         this.listEl = this.querySelector('#words-list');
 
@@ -16,16 +18,16 @@ export class WordsComponent extends HTMLElement {
 
     render(words) {
         if (!words) return;
-
         let html = '';
+
         words.forEach(w => {
-            let classes = "word-item";
+            let classes = "word";
             
             if (w.found) {
                 classes += " found";
                 
-                if (w.foundBy) {
-                    classes += w.foundBy === store.state.user.id ? " found-me" : " found-opponent";
+                if (w.foundById) {
+                    classes += w.foundById === store.state.user.id ? " found-me" : " found-opponent";
                 }
             }
 

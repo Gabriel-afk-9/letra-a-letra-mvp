@@ -63,7 +63,6 @@ export class PlayerCard extends HTMLElement {
         const isMe = playerId === store.state.user.id;
         
         const name = isMe ? store.state.user.name : store.state.opponent.name;
-        // const labelText = isMe ? 'Sua vez' : 'Vez do oponente';
 
         this.cardEl.classList.remove('theme-orange', 'theme-blue');
         if (isMe) {
@@ -73,7 +72,6 @@ export class PlayerCard extends HTMLElement {
         }
         
         this.nameEl.innerText = name;
-        // this.labelEl.innerText = labelText;
 
         const playersList = store.state.players || [];
         const playerData = playersList.find(p => p.id === playerId);

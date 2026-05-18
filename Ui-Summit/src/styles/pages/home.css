@@ -80,14 +80,62 @@
   transition: transform 0.1s ease, box-shadow 0.2s ease;
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
   outline: none;
-  background-color: rgb(27, 157, 222);
-  border: 5px solid rgb(64, 176, 232);
-  box-shadow: 0 6px 0 rgb(57, 68, 148);
+  background-color: rgb(240, 125, 34);
+  border: 5px solid rgb(255, 143, 55);
+  box-shadow: 0 6px 0 rgb(148, 97, 57);
   margin-top: 2rem;
 }
 
-.button:hover,
-.button:focus {
+.button:hover {
   transform: translateY(-2px);
-  border: 5px solid rgb(22, 133, 186);
+  border: 5px solid rgb(255, 143, 55);
+}
+
+@keyframes shake-input {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { 
+        transform: translateX(-5px); 
+        border-color: #e74c3c; 
+        background-color: #ffeaea; 
+        color: #c0392b;
+    }
+    40%, 80% { 
+        transform: translateX(5px); 
+        border-color: #e74c3c; 
+        background-color: #ffeaea; 
+        color: #c0392b;
+    }
+}
+
+.input.input-error {
+    animation: shake-input 0.5s ease-in-out;
+    outline: none;
+}
+
+
+.button.btn-clicked {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+.login-error-popup {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #e74c3c;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+    z-index: 1000;
+    transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: none;
+    
+}
+
+.login-error-popup.show {
+    top: 20px;
 }

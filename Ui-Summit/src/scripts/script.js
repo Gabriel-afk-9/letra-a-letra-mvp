@@ -4,12 +4,15 @@ import "../components/player.js";
 import "../components/words.js";
 import "../components/board.js";
 import "../components/inventory.js";
+import "../components/cell.js";
+import "../components/notification.js";
+import "../components/endGame.js";
 import "../pages/Home.js";
 import "../pages/Game.js";
 import "../pages/Matchmaking.js";
 import "../pages/Found.js";
 
-const root = document.body;
+const root = document.getElementById('app');
 
 store.subscribe('currentPage', (page) => {
     root.classList.add('fade-out');

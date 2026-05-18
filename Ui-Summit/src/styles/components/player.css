@@ -73,9 +73,9 @@ player-card {
 
 .player-card__name {
     color: white;
-    font-size: 25px;
+    font-size: 30px;
     margin: 0 0 8px 0;
-    -webkit-text-stroke: 1px #464646;
+    -webkit-text-stroke: 1px #000000;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

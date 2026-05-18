@@ -5,6 +5,9 @@
 @import url("./components/words.css");
 @import url("./components/player.css");
 @import url("./components/modal.css");
+@import url("./components/cell.css");
+@import url("./components/notification.css");
+@import url("./components/endGame.css");
 
 @import url("./pages/home.css");
 @import url("./pages/matchmaking.css");
