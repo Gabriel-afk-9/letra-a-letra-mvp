@@ -1,97 +1,152 @@
 [CONTEXTO]
-Estou desenvolvendo um jogo multiplayer em JavaScript puro com WebSocket, onde os efeitos (como FREEZE e UNFREEZE) vêm da API e são refletidos no estado (`store`).
+Estou desenvolvendo um frontend em JavaScript puro que consome uma API orientada a eventos (WebSocket).
 
----
+Vou enviar:
+- A documentação da API (.md)
+- Um arquivo com o código atual (.md)
 
-[PROBLEMA]
-Implementei a lógica de FREEZE / UNFREEZE, mas ela está parcialmente incorreta:
-
-- Quando o oponente usa FREEZE:
-  ✔ Eu perco turnos (correto)
-
-- Quando eu tenho o UNFREEZE:
-  ✔ O turno volta para mim (correto)
-
-❌ PROBLEMA:
-Mesmo estando congelado e tendo UNFREEZE disponível:
-- Eu ainda consigo:
-  - Clicar no tabuleiro
-  - Usar outros poderes
-- Isso está errado
+A API é a fonte de verdade. O frontend apenas envia ações e reage aos eventos.
 
 ---
 
 [OBJETIVO]
-Quero que, quando o jogador estiver sob efeito de FREEZE:
-
-- Ele NÃO possa:
-  - Interagir com o tabuleiro
-  - Usar outros poderes
-
-- Ele SÓ possa:
-  - Usar o poder UNFREEZE (se tiver)
+Corrigir o comportamento do poder IMMUNITY, que não está funcionando corretamente contra o FREEZE.
 
 ---
 
-[COMPORTAMENTO ESPERADO]
+[REGRA DE JOGO]
 
-Se `playerEffects.freeze === true`:
+Cenário:
+- Jogador 1 usa FREEZE no Jogador 2
 
-- Tabuleiro:
-  ❌ Bloqueado (sem clique)
+Comportamento esperado:
 
-- Inventário:
-  ❌ Todos os poderes desativados
-  ✔ Apenas UNFREEZE habilitado
+Se o Jogador 2 tiver:
+- UNFREEZE → pode usar para remover o FREEZE
+- IMMUNITY → também deve remover o FREEZE
+- Ambos → pode usar qualquer um dos dois
+
+Além disso:
+- IMMUNITY também remove efeitos negativos como BLIND (isso já está funcionando)
 
 ---
 
-[REQUISITOS DE IMPLEMENTAÇÃO]
+[PROBLEMA]
 
-- Controlar isso via estado (store), ex:
-```js
-playerEffects: {
-  freeze: true
-}
-```
-Criar uma lógica central que valide ações:
-Ex:
-```
-if (isFrozen && action !== 'UNFREEZE') {
-  bloquear ação;
-}
-```
+Atualmente:
 
-[PONTOS PARA ANALISAR NO CÓDIGO]
+- Jogador 2 consegue selecionar o poder IMMUNITY ✔
+- Porém NÃO consegue usar o IMMUNITY para remover o FREEZE ❌
+- Apenas o UNFREEZE funciona corretamente
 
-Onde o estado de FREEZE está sendo armazenado
-Onde as ações do jogador são validadas (playTurn, usePower, etc.)
-Por que não existe bloqueio condicional baseado em FREEZE
-Se a UI está ignorando esse estado
+---
+
+[COMPORTAMENTO ERRADO]
+
+- O sistema está permitindo usar UNFREEZE, mas bloqueando IMMUNITY
+- Mesmo o IMMUNITY tendo a função de remover efeitos negativos
+
+---
+
+[OBJETIVO DA ANÁLISE]
+
+Quero que você identifique:
+
+1. Por que o IMMUNITY não está sendo aceito como ação válida durante FREEZE
+2. Onde está a lógica que restringe os poderes quando o jogador está congelado
+3. Se essa lógica está permitindo apenas UNFREEZE (hardcoded ou condição errada)
+
+---
 
 [INSTRUÇÕES]
 
 Quero que você:
 
-Identifique o erro na lógica atual
-Mostre exatamente onde bloquear as ações
-Sugira uma solução simples e centralizada (sem espalhar ifs pelo código)
-Garanta que:
-Jogador congelado não consegue agir
-Apenas UNFREEZE funciona
+1. Encontre exatamente onde essa validação acontece
+2. Mostre o erro na lógica atual
+3. Corrija de forma simples e clara
+4. Garanta que:
+- IMMUNITY funcione igual UNFREEZE nesse contexto
+- Não quebre outros poderes
 
-[OBS]
-Foco em evitar inconsistência e garantir controle total do estado.
-Sem overengineering.
+---
+
+[IMPORTANTE]
+
+- NÃO inventar comportamento fora da API
+- Considerar que IMMUNITY remove efeitos negativos
+- Foco em corrigir a lógica de permissão de ação
+
+---
+
+[OBJETIVO FINAL]
+
+Garantir que:
+
+- Jogador congelado só possa usar poderes válidos
+- IMMUNITY seja tratado corretamente como defesa contra FREEZE
+- O jogo não entre em estado inconsistente
+
+---
 
 [CODIGO]
+
+src/components/board.js
+```
+import { store } from "../state/store.js";
+import "./cell.js";
+
+export class BoardComponent extends HTMLElement {
+    connectedCallback() {
+        this.className = "board-grid";
+        store.subscribe('board', () => this.render());
+        store.subscribe('foundCellsMap', () => this.render());
+        store.subscribe('playerEffects', () => this.render());
+        this.render();
+    }
+
+    render() {
+        const boardData = store.state.board;
+        if (!boardData || boardData.length === 0) return;
+
+        const foundMap = store.state.foundCellsMap || {};
+        let html = '';
+        
+        boardData.forEach((row, X) => {
+            row.forEach((cellData, Y) => {
+                
+                const ownerId = cellData.effect ? cellData.effect.ownerId : '';
+                const effectType = cellData.effect ? cellData.effect.effect : '';
+                
+                const wordOwnerId = foundMap[`${X},${Y}`];
+
+                html += `
+                    <cell-component
+                        x="${X}" 
+                        y="${Y}" 
+                        letter="${cellData.letter || ''}" 
+                        revealed="${cellData.revealed}"
+                        revealed-by="${cellData.revealedBy || ''}" 
+                        found-by="${wordOwnerId || ''}" 
+                        effect-type="${effectType}"
+                        effect-owner="${ownerId}"
+                        remaining-clicks="${cellData.effect?.remainingClicks || ''}">
+                    </cell-component>
+                `;
+            });
+        });
+
+        this.innerHTML = html;
+    }
+}
+customElements.define("board-component", BoardComponent);
+```
 
 src/components/cell.js
 ```
 import { store } from "../state/store.js";
 import { GameService } from "../services/game/gameService.js";
 
-// Sobrevive aos re-renders — guarda células que já animaram
 const animatedCells = new Set();
 
 const GLOBAL_POWERS = ["FREEZE", "UNFREEZE", "BLIND", "LANTERN", "IMMUNITY", "DETECT_TRAPS"];
@@ -118,28 +173,23 @@ export class CellComponent extends HTMLElement {
         let innerHtml = `<span>${letter}</span>`;
 
         if (revealed) {
-            // Animação única por célula
             if (!animatedCells.has(cellKey)) {
                 classes += " animate-reveal";
                 animatedCells.add(cellKey);
             }
 
-            // 1. Blind — sobrescreve tudo
             if (isBlind) {
                 classes += " cell-blinded";
                 innerHtml = `<span>?</span>`;
             }
-            // 2. Palavra encontrada
             else if (foundBy) {
                 classes += foundBy === user.id ? " found-me" : " found-opponent";
             }
-            // 3. Revelada sem palavra
             else if (revealedBy) {
                 classes += revealedBy === user.id ? " revealed-me" : " revealed-opponent";
             }
         }
 
-        // 4. Efeitos de célula (BLOCK, TRAP, SPY)
         if (effectType === "BLOCK") {
             classes += isEffectMine ? " block-me" : " block-opponent";
             innerHtml += `<div class="padlock-icon">🔒 ${remainingClicks}</div>`;
@@ -159,28 +209,22 @@ export class CellComponent extends HTMLElement {
         this.innerHTML = innerHtml;
 
         this.addEventListener('click', () => {
-            const isMyTurn = store.state.currentTurnPlayerId === user.id;
+ 
+            const isFreeze = store.state.playerEffects?.freeze;
+            const isNotMyTurn = store.state.currentTurnPlayerId !== user.id;
 
-            // Fora do turno — feedback de erro
-            if (!isMyTurn) {
+            if (isNotMyTurn || isFreeze) {
                 this.classList.add('shake-error');
                 setTimeout(() => this.classList.remove('shake-error'), 400);
-                return;
-            }
 
-            if (store.state.playerEffects?.freeze) {
-                store.state.notification = { 
-                    message: "Você está congelado! 🧊 Use o UNFREEZE ou aguarde.", 
-                    type: "me" 
-                };
-                this.classList.add('shake-error');
-                setTimeout(() => this.classList.remove('shake-error'), 400);
+                if (isFreeze) {
+                    store.state.notification = { message: "Você está congelado! 🧊 Use o UNFREEZE.", type: "me" };
+                }
                 return;
             }
 
             const { activePower } = store.state;
 
-            // Poder ativo do tipo CELL — usa o poder na célula
             if (activePower?.scope === "CELL") {
                 GameService.playTurn(x, y, activePower.id, activePower.type);
                 store.state.activePower = null;
@@ -188,7 +232,6 @@ export class CellComponent extends HTMLElement {
                 return;
             }
 
-            // Poder ativo do tipo GLOBAL — avisa que não precisa de célula
             if (activePower?.scope === "GLOBAL") {
                 store.state.notification = {
                     message: "Este poder não precisa de célula! Arraste para cima.",
@@ -197,7 +240,6 @@ export class CellComponent extends HTMLElement {
                 return;
             }
 
-            // Jogada normal
             GameService.playTurn(x, y);
         });
     }
@@ -205,6 +247,7 @@ export class CellComponent extends HTMLElement {
 
 customElements.define("cell-component", CellComponent);
 ```
+
 src/components/inventory.js
 ```
 import { store } from "../state/store.js";
@@ -212,26 +255,42 @@ import { GameService } from "../services/game/gameService.js";
 
 const GLOBAL_POWERS = ["FREEZE", "UNFREEZE", "BLIND", "LANTERN", "IMMUNITY", "DETECT_TRAPS"];
 
+const POWER_ICONS = {
+    "FREEZE": "assets/powers/icon-freeze.png",
+    "UNFREEZE": "assets/powers/icon-unfreeze.png",
+    "BLIND": "assets/powers/icon-blind.png",
+    "LANTERN": "assets/powers/icon-lantern.png",
+    "IMMUNITY": "assets/powers/icon-imunity.png",
+    "DETECT_TRAPS": "assets/powers/icon-detecttraps.png",
+    "BLOCK": "assets/powers/icon-block.png",
+    "SPY": "assets/powers/icon-spy.png",
+    "TRAP": "assets/powers/icon-trap.png"
+};
+
 export class InventoryComponent extends HTMLElement {
     connectedCallback() {
         this.className = "inventory-section";
 
         store.subscribe('players', () => this.render());
         store.subscribe('activePower', () => this.render());
+        store.subscribe('playerEffects', () => {
+            if (store.state.playerEffects?.freeze && store.state.activePower?.type !== "UNFREEZE") {
+                store.state.activePower = null;
+                document.body.className = "";
+            }
+            this.render();
+        });
 
         this.addEventListener('click', (e) => {
             if (!store.state.activePower) return;
 
-            // Lógica do botão DESCARTAR
             if (e.target.id === 'discard-btn') {
                 GameService.discardPower(store.state.activePower.id);
                 store.state.activePower = null;
                 document.body.className = "";
             } 
-            // Lógica do novo botão USAR (Apenas Globais)
             else if (e.target.id === 'use-btn') {
                 if (store.state.playerEffects?.freeze) {
-                    // Se estiver congelado e tentar usar algo diferente de UNFREEZE, bloqueia!
                     if (store.state.activePower.type !== "UNFREEZE") {
                         store.state.notification = { 
                             message: "Você está congelado! Só pode usar o poder UNFREEZE.", 
@@ -267,13 +326,15 @@ export class InventoryComponent extends HTMLElement {
                 const isSelected = store.state.activePower?.id === power.id ? 'selected' : '';
                 const isFrozen = store.state.playerEffects?.freeze;
                 const isDisabled = (isFrozen && power.name !== "UNFREEZE") ? 'power-disabled' : '';
+                //Mudar dps
+                const imgSrc = POWER_ICONS[power.name] || "./assets/powers/default.png";
                 
                 html += `
                     <div class="slot has-power power-card ${isSelected} ${isDisabled}"
                          data-id="${power.id}"
                          data-type="${power.name}"
                          data-scope="${scope}">
-                        ${power.name}
+                         <img src="${imgSrc}" alt="${power.name}" class="power-icon" draggable="false" />
                     </div>
                 `;
             } else {
@@ -286,7 +347,6 @@ export class InventoryComponent extends HTMLElement {
         if (store.state.activePower) {
             html += `<div class="active-power-actions" style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">`;
             
-            // Só mostra o botão "Usar" se o poder for de efeito Global
             if (store.state.activePower.scope === "GLOBAL") {
                 html += `<button id="use-btn" class="use button" style="background-color: #409ddb;">Usar Poder</button>`;
             }
@@ -304,7 +364,6 @@ export class InventoryComponent extends HTMLElement {
             let startY = 0;
             const { id: powerId, type: powerType, scope } = card.dataset;
 
-            // Clique: seleciona/desselecioan o poder
             card.addEventListener('click', () => {
                 if (store.state.playerEffects?.freeze && powerType !== "UNFREEZE") {
                     return; 
@@ -326,7 +385,6 @@ export class InventoryComponent extends HTMLElement {
                     return; 
                 }
                 if (diffY > 50) {
-                    // Arrasto para CIMA — ativar poder global
                     if (scope === "GLOBAL") {
                         GameService.playGlobalPower(powerId, powerType);
                         store.state.activePower = null;
@@ -338,14 +396,12 @@ export class InventoryComponent extends HTMLElement {
                         };
                     }
                 } else if (diffY < -50) {
-                    // Arrasto para BAIXO — descartar
                     GameService.discardPower(powerId);
                     store.state.activePower = null;
                     document.body.className = "";
                 }
             };
 
-            // Gestos de swipe
             card.addEventListener('touchstart', (e) => {
                 startY = e.touches[0].clientY;
             });
@@ -370,6 +426,31 @@ export class InventoryComponent extends HTMLElement {
 
 customElements.define("inventory-component", InventoryComponent);
 ```
+
+src/constants/effects.js
+```
+export const EFFECT_EVENTS = new Set([
+    "PLAYER_BLINDED", "PLAYER_USE_LANTERN",
+    "PLAYER_FROZEN", "PLAYER_UNFREEZE",
+    "IMMUNITY_APPLIED", "IMMUNITY_REMOVED",
+    "DETECT_TRAPS_APPLIED", "DETECT_TRAPS_REMOVED",
+    "SPY_APPLIED", "SPY_REMOVED"
+]);
+
+export const EFFECT_MAP = {
+    PLAYER_BLINDED:       { key: 'blind',         value: true  },
+    PLAYER_USE_LANTERN:   { key: 'blind',         value: false },
+    PLAYER_FROZEN:        { key: 'freeze',        value: true  },
+    PLAYER_UNFREEZE:      { key: 'freeze',        value: false },
+    IMMUNITY_APPLIED:     { key: 'immunity',      value: true  },
+    IMMUNITY_REMOVED:     { key: 'immunity',      value: false },
+    DETECT_TRAPS_APPLIED: { key: 'detect_traps',  value: true  },
+    DETECT_TRAPS_REMOVED: { key: 'detect_traps',  value: false },
+    SPY_APPLIED:          { key: 'spy',           value: true  },
+    SPY_REMOVED:          { key: 'spy',           value: false },
+};
+```
+
 src/services/game/gameService.js
 ```
 import { store } from "../../state/store.js";
@@ -383,6 +464,18 @@ const buildActionPayload = (x, y, powerId, powerName) =>
         : { type: "REVEAL", position: { x, y } };
 
 export const GameService = {
+    canAct(actionName = "REVEAL") {
+        if (store.state.currentTurnPlayerId !== store.state.user.id) return false;
+
+        if (store.state.playerEffects?.freeze && actionName !== "UNFREEZE") {
+            store.state.notification = { 
+                message: "Ação bloqueada! Você está congelado 🧊.", 
+                type: "me" 
+            };
+            return false;
+        }
+        return true;
+    },
     playTurn(x, y, powerId = null, powerName = null) {
         if (store.state.currentTurnPlayerId !== store.state.user.id) return;
 
@@ -394,11 +487,7 @@ export const GameService = {
     },
 
     playGlobalPower(powerId, powerName) {
-        console.log(`🎮 [GAME SERVICE] Tentativa de usar poder Global: ${powerName} (ID: ${powerId})`);
-        
-        console.log(`🔍 [GAME SERVICE] Turno atual: ${store.state.currentTurnPlayerId} | Meu ID: ${store.state.user.id}`);
-        
-        if (store.state.currentTurnPlayerId !== store.state.user.id) return;
+        if (!this.canAct(powerName)) return;
 
         const offensivePowers = ["FREEZE", "BLIND"];
     
@@ -406,24 +495,11 @@ export const GameService = {
             ? store.state.opponent.id 
             : store.state.user.id;
 
-        // 2. Monta o payload incluindo o targetId
-        const payload = {
+        wsManager.send({
             type: "PLAYER_ACTION",
             tokenGameId: getTokenGameId(),
-            action: { 
-                type: powerName, 
-                actionId: powerId,
-                targetId: target // <-- A SOLUÇÃO ESTÁ AQUI!
-            }
-        };
-        
-        wsManager.send(payload);
-
-        // wsManager.send({
-        //     type: "PLAYER_ACTION",
-        //     tokenGameId: getTokenGameId(),
-        //     action: { type: powerName, actionId: powerId }
-        // });
+            action: { type: powerName, actionId: powerId, targetId: target }
+        });
     },
 
     discardPower(powerId) {
@@ -443,11 +519,16 @@ export const GameService = {
         });
 
         store.state.tokenGameId = null;
+        store.state.playerEffects = {
+            blind: false, spy: false, freeze: false, immunity: false, detect_traps: false
+        };
+        document.body.className = "";
 
         if (!isClosingTab) store.state.currentPage = 'home';
     }
 };
 ```
+
 src/state/store.js
 ```
 class ReactiveStore {
@@ -499,153 +580,40 @@ export const store = new ReactiveStore({
     }
 });
 ```
-src/websocket/socket/wsEventHandle.js
+
+src/state/gameActions.js
 ```
-import { store } from "../../state/store.js";
+import { store } from "./store.js";
 
-export const wsEventHandler = {
-    handle(msg, userId, callbacks) {
-        console.log("📥 [WS RECEBIDO BRUTO]:", msg.event, msg);
-        if (msg.events && Array.isArray(msg.events)) {
-            this.processInternalEvents(msg.events);
-        }
+export const GameActions = {
+    clearGameState() {
+        store.state.activePower = null;
+        store.state.pendingUnblind = false;
+        store.state.playerEffects = {
+            blind: false, spy: false, freeze: false,
+            immunity: false, detect_traps: false
+        };
+        document.body.className = "";
+    },
 
-        if (msg.data?.board) this.syncGameState(msg.data);
-        switch (msg.event) {
-            case "MATCHMAKING_GAME":
-                if (msg.status === "FOUNDED") {
-                    const opponent = msg.data.players.find(p => p.id !== userId);
-                    store.state.tokenGameId = msg.tokenGameId;
-                    store.state.opponent = opponent
-                        ? { id: opponent.id, name: opponent.nickname }
-                        : { id: null, name: "Desafiante" };
-                    this.syncGameState(msg.data);
-                    store.state.currentPage = 'found';
-                    callbacks.onMatchFound();
-                }
-                break;
+    setEffect(key, value) {
+        store.state.playerEffects = { ...store.state.playerEffects, [key]: value };
 
-            case "PLAYER_ACTION_RESULT":
-            case "TURN_EXPIRED":
-                if (msg.data?.currentTurnPlayerId) {
-                    store.state.currentTurnPlayerId = msg.data.currentTurnPlayerId;
-                    store.state.turnEndsAt = msg.turnEndsAt;
-                    this.updateTurnMessage();
-                }
-                callbacks.onResetWatchdog();
-                break;
-
-            case "GAME_OVER":
-                const isWinner = msg.data.winner.id === store.state.user.id;
-                store.state.endGameState = {
-                    show: true,
-                    isWinner: isWinner,
-                    title: isWinner ? "🏆 VOCÊ VENCEU!" : "💀 VOCÊ PERDEU!",
-                    message: isWinner 
-                        ? "Parabéns! Você encontrou mais palavras." 
-                        : "O oponente foi melhor dessa vez. Tente novamente!"
-                };
-                break;
-
-            case "REMOVED_BECAUSE_INACTIVITY":
-                store.state.endGameState = {
-                    show: true,
-                    isWinner: false,
-                    title: "💤 DESCONECTADO",
-                    message: "Você foi removido por inatividade."
-                };
-                break;
-
-            case "PARTICIPANT_LEAVE":
-            case "PARTICIPANT_DISCONNECTED":
-
-                if (store.state.tokenGameId) {
-                    store.state.endGameState = {
-                        show: true,
-                        isWinner: true,
-                        title: "🏃 OPONENTE FUGIU",
-                        message: "Você venceu por W.O.! O oponente saiu da partida."
-                    };
-                }
-                break;
-
-            case "ERROR":
+        if (key === 'freeze') {
+            if (value) {
+                document.body.classList.add('is-frozen');
+            } else {
+                document.body.classList.remove('is-frozen');
                 store.state.activePower = null;
-                document.body.className = "";
-
-                if (msg.message === "player_not_in_game"){
-                    store.state.endGameState = {
-                        show: true,
-                        isWinner: true,
-                        title: "🏃 OPONENTE FUGIU",
-                        message: "Você venceu! O oponente foi desconectado."
-                    };
-                }
-                break;
+            }
         }
     },
 
-    processInternalEvents(events) {
-    events.forEach(internalEvent => {
-        const { event: eventName, data } = internalEvent;
-        const targetId = data?.targetPlayerId;
-        const isMe = targetId === store.state.user.id;
-
-        // ==========================================
-        // PALAVRA ENCONTRADA
-        // ==========================================
-        if (eventName === "WORD_FOUNDED" || eventName === "WORD_FOUND") {
-            const { cells, foundedBy } = data;
-            if (!cells || !foundedBy) return;
-
-            const currentMap = store.state.foundCellsMap || {};
-            cells.forEach(pos => {
-                const key = `${pos.x},${pos.y}`;
-                if (!currentMap[key]) currentMap[key] = foundedBy;
-            });
-            store.state.foundCellsMap = { ...currentMap };
-
-            setTimeout(() => {
-                store.state.notification = foundedBy === store.state.user.id
-                    ? { message: "Você encontrou uma palavra!", type: "me" }
-                    : { message: "O oponente encontrou uma palavra!", type: "opponent" };
-            }, 100);
-
-            return;
-        }
-
-        // ==========================================
-        // EFEITOS DO JOGADOR
-        // ==========================================
-        if (!isMe) return; // os eventos abaixo só importam se o alvo for você
-
-        const setEffect = (key, value) => {
-            store.state.playerEffects = { ...store.state.playerEffects, [key]: value };
-        };
-
-        switch (eventName) {
-            case "PLAYER_BLINDED":      setEffect('blind', true);         break;
-            case "PLAYER_UNBLINDED":    setEffect('blind', false);        break;
-            case "PLAYER_FROZEN":       setEffect('freeze', true);        break;
-            case "PLAYER_UNFROZEN":     setEffect('freeze', false);       break;
-            case "IMMUNITY_APPLdIED":    setEffect('immunity', true);      break;
-            case "IMMUNITY_REMOVED":    setEffect('immunity', false);     break;
-            case "DETECT_TRAPS_APPLIED":setEffect('detect_traps', true);  break;
-            case "DETECT_TRAPS_REMOVED":setEffect('detect_traps', false); break;
-            case "SPY_APPLIED":         setEffect('spy', true);           break;
-            case "SPY_REMOVED":         setEffect('spy', false);          break;
-            case "TRAP_TRIGGERED":
-                // ajuste aqui conforme o que o backend enviar junto
-                break;
-        }
-    });
-},
-
     syncGameState(data) {
-
-        if (data.board) store.state.board = data.board;
-        if (data.words) store.state.words = data.words;
+        if (data.board)   store.state.board   = data.board;
+        if (data.words)   store.state.words   = data.words;
         if (data.players) store.state.players = data.players;
+
         if (data.currentTurnPlayerId) {
             store.state.currentTurnPlayerId = data.currentTurnPlayerId;
             this.updateTurnMessage();
@@ -655,6 +623,189 @@ export const wsEventHandler = {
     updateTurnMessage() {
         const isMyTurn = store.state.currentTurnPlayerId === store.state.user.id;
         store.state.gameMessage = isMyTurn ? "🟢 SEU TURNO" : "🔴 TURNO DO OPONENTE";
+    
+        if (isMyTurn) {
+            if (store.state.pendingUnfreeze) {
+                this.setEffect('freeze', false);
+                store.state.pendingUnfreeze = false;
+            }
+
+            if (store.state.pendingUnblind) {
+                    this.setEffect('blind', false);
+                    store.state.pendingUnblind = false;
+            }
+        }
+    },  
+
+    setEndGameState(show, isWinner, title, message) {
+        store.state.endGameState = { show, isWinner, title, message };
+    }
+};
+```
+
+src/websocket/handlers/internalEvents.js
+```
+import { store } from "../../state/store.js";
+import { GameActions } from "../../state/gameActions.js";
+import { EFFECT_EVENTS, EFFECT_MAP } from "../../constants/effects.js";
+
+const isTargetMe = (data) => {
+    if (!data) return false;
+    return Object.values(data).includes(store.state.user.id);
+};
+
+const handleWordFound = ({ cells, foundedBy }) => {
+    if (!cells || !foundedBy) return;
+
+    const currentMap = store.state.foundCellsMap || {};
+    cells.forEach(({ x, y }) => {
+        currentMap[`${x},${y}`] = foundedBy;
+    });
+    store.state.foundCellsMap = { ...currentMap };
+
+    setTimeout(() => {
+        store.state.notification = foundedBy === store.state.user.id
+            ? { message: "Você encontrou uma palavra!", type: "me" }
+            : { message: "O oponente encontrou uma palavra!", type: "opponent" };
+    }, 100);
+};
+
+export const processInternalEvents = (events) => {
+    events.forEach(({ event: eventName, data }) => {
+        console.log(`🚨 [DEBUG EFEITO] Nome do Evento: ${eventName} | Dados:`, data);
+        if (eventName === "WORD_FOUNDED" || eventName === "WORD_FOUND") {
+            handleWordFound(data);
+            return;
+        }
+
+        if (eventName === "TURN_PASSED" && isTargetMe(data)) {
+            
+            
+            if (store.state.playerEffects?.freeze) {
+                                store.state.freezeTurnsLeft = (store.state.freezeTurnsLeft || 3) -1;
+                
+                
+                if (store.state.freezeTurnsLeft <= 0) {
+                    store.state.pendingUnfreeze = true;
+                }
+            }
+
+            return; 
+        }
+
+        if (eventName === "CELL_REVEALED" && data?.revealedBy === store.state.user.id) {
+            if (store.state.playerEffects?.blind) {
+                store.state.blindTurnsLeft = (store.state.blindTurnsLeft || 3) - 1;
+                
+                if (store.state.blindTurnsLeft <= 0) {
+                    store.state.pendingUnblind = true; 
+                }            
+            }
+            
+        }
+
+        if (EFFECT_EVENTS.has(eventName) && isTargetMe(data)) {
+            const effect = EFFECT_MAP[eventName];
+            if (effect) GameActions.setEffect(effect.key, effect.value);
+        }
+
+        if (eventName === "PLAYER_FROZEN") {
+                store.state.freezeTurnsLeft = 3;
+                store.state.pendingUnfreeze = false;
+        }
+
+        if (eventName === "PLAYER_BLINDED") {
+                store.state.blindTurnsLeft = 3;
+                store.state.pendingUnblind = false;
+        }
+    });
+};
+```
+
+src/websocket/socket/wsEventHandler.js
+```
+import { store } from "../../state/store.js";
+import { GameActions } from "../../state/gameActions.js";
+import { processInternalEvents } from "../handlers/internalEvents.js";
+
+export const wsEventHandler = {
+    handle(msg, userId, callbacks) {
+        if (Array.isArray(msg.events)) {
+            processInternalEvents(msg.events);
+        }
+
+        if (msg.data?.board) {
+            GameActions.syncGameState(msg.data);
+        }
+
+        this.routeEvent(msg, userId, callbacks);
+    },
+
+    routeEvent(msg, userId, callbacks) {
+        switch (msg.event) {
+            case "MATCHMAKING_GAME":
+                if (msg.status !== "FOUNDED") break;
+                const opponent = msg.data.players.find(p => p.id !== userId);
+                store.state.tokenGameId = msg.tokenGameId;
+                store.state.opponent = opponent
+                    ? { id: opponent.id, name: opponent.nickname }
+                    : { id: null, name: "Desafiante" };
+                store.state.currentPage = 'found';
+                callbacks.onMatchFound();
+                break;
+
+            case "PLAYER_ACTION_RESULT":
+            case "TURN_EXPIRED":
+                if (msg.data?.currentTurnPlayerId) {
+                    store.state.currentTurnPlayerId = msg.data.currentTurnPlayerId;
+                    store.state.turnEndsAt = msg.turnEndsAt;
+                    GameActions.updateTurnMessage();
+                }
+                callbacks.onResetWatchdog();
+                break;
+
+            case "GAME_OVER": {
+                GameActions.clearGameState();
+                const isWinner = msg.data.winner.id === store.state.user.id;
+                GameActions.setEndGameState(
+                    true, isWinner,
+                    isWinner ? "🏆 VOCÊ VENCEU!" : "💀 VOCÊ PERDEU!",
+                    isWinner ? "Parabéns! Você encontrou mais palavras."
+                             : "O oponente foi melhor dessa vez. Tente novamente!"
+                );
+                break;
+            }
+
+            case "REMOVED_BECAUSE_INACTIVITY":
+                GameActions.clearGameState();
+                GameActions.setEndGameState(
+                    true, false, "💤 DESCONECTADO",
+                    "Você foi removido por inatividade."
+                );
+                break;
+
+            case "PARTICIPANT_LEAVE":
+            case "PARTICIPANT_DISCONNECTED":
+                if (!store.state.tokenGameId) break;
+                GameActions.clearGameState();
+                GameActions.setEndGameState(
+                    true, true, "🏃 OPONENTE FUGIU",
+                    "Você venceu por W.O.! O oponente saiu da partida."
+                );
+                break;
+
+            case "ERROR":
+                store.state.activePower = null;
+                document.body.className = "";
+                if (msg.message === "player_not_in_game") {
+                    GameActions.clearGameState();
+                    GameActions.setEndGameState(
+                        true, true, "🏃 OPONENTE FUGIU",
+                        "Você venceu! O oponente foi desconectado."
+                    );
+                }
+                break;
+        }
     }
 };
 ```

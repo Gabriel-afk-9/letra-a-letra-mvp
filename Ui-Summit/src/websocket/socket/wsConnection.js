@@ -3,7 +3,7 @@ export const wsConnection = {
 
     connect(token, onMessage) {
         this.socket = new WebSocket(`ws://localhost:8080/ws/game?token=${token}`);
-        this.socket.onopen = () => this.send({ type: "MATCHMAKING_GAME", gameMode: "CATACLYSM" });
+        this.socket.onopen = () => this.send({ type: "MATCHMAKING_GAME", gameMode: "INSANE" });
         this.socket.onmessage = (event) => onMessage(JSON.parse(event.data));
     },
 

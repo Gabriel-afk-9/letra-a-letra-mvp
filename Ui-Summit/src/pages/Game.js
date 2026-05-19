@@ -1,11 +1,10 @@
 import { GameService } from "../services/game/gameService.js";
 import { store } from "../state/store.js";
-import "../components/board.js";
-import "../components/player.js";
+import "../components/board/board.js";
+import "../components/playerCard/playerCard.js";
 import "../components/words.js";
-import "../components/inventory.js";
-import "../components/modal.js";
-import "../components/cell.js";
+import "../components/inventory/inventory.js";
+import "../components/cell/cell.js";
 
 export class GamePage extends HTMLElement {
     connectedCallback() {

@@ -58,9 +58,20 @@ export const processInternalEvents = (events) => {
         }
 
         if (EFFECT_EVENTS.has(eventName) && isTargetMe(data)) {
+            if (eventName === "PLAYER_USE_IMMUNITY") {
+                GameActions.setEffect('freeze', false);
+                GameActions.setEffect('blind', false);
+                GameActions.setEffect('immunity', true);
+                
+                store.state.pendingUnfreeze = false;
+                store.state.pendingUnblind = false;
+                return;
+            }
+
             const effect = EFFECT_MAP[eventName];
-            if (effect) GameActions.setEffect(effect.key, effect.value);
-        }
+            if (effect) {
+                GameActions.setEffect(effect.key, effect.value);
+            }
 
         if (eventName === "PLAYER_FROZEN") {
                 store.state.freezeTurnsLeft = 3;
@@ -70,6 +81,8 @@ export const processInternalEvents = (events) => {
         if (eventName === "PLAYER_BLINDED") {
                 store.state.blindTurnsLeft = 3;
                 store.state.pendingUnblind = false;
+        
+            }
         }
     });
 };

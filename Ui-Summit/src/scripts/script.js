@@ -1,12 +1,12 @@
 import { store } from "../state/store.js";
 import { GameService } from "../services/game/gameService.js"
-import "../components/player.js";
+import "../components/playerCard/playerCard.js";
 import "../components/words.js";
-import "../components/board.js";
-import "../components/inventory.js";
-import "../components/cell.js";
+import "../components/board/board.js";
+import "../components/inventory/inventory.js";
+import "../components/cell/cell.js";
 import "../components/notification.js";
-import "../components/endGame.js";
+import "../components/endGame/endGame.js";
 import "../pages/Home.js";
 import "../pages/Game.js";
 import "../pages/Matchmaking.js";

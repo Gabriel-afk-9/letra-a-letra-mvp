@@ -69,6 +69,9 @@ export const wsEventHandler = {
                 break;
 
             case "ERROR":
+                console.log("❌ [DEBUG API] A API recusou a jogada! Motivo:", msg.message);
+                store.state.apiError = msg.message;
+                store.notify('apiError');
                 store.state.activePower = null;
                 document.body.className = "";
                 if (msg.message === "player_not_in_game") {
