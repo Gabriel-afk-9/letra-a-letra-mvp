@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "http://:8080";
 
 export const http = {
     post: (path, body, token) => fetch(`${BASE_URL}${path}`, {
