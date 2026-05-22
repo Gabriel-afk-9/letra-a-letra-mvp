@@ -1,0 +1,92 @@
+.cell {
+    background-color: #ffffff;
+    border-radius: 5px;
+    border: 3px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 900;
+    color: #000000;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s ease-in-out;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3);
+}
+
+.cell.hidden:hover {
+    transform: scale(1.05);
+}
+
+.cell.revealed {
+    background-color: #ffffff;
+    color: #000000;
+    cursor: default;
+    transform: scale(0.95);
+}
+
+.cell.revealed.revealed-me {
+    background-color: rgba(255, 255, 255, 1);
+    border-color: #ff8922;
+    color: #000000;
+}
+
+.cell.revealed.revealed-opponent {
+    background-color: rgb(255, 255, 255);
+    border-color: #409ddb;
+    color: #000000;
+}
+
+.cell.revealed.found-me {
+    background-color: #ff8922; 
+    border-color: #e67e22;
+    color: #ffffff;
+}
+
+.cell.revealed.found-opponent {
+    background-color: #409ddb;
+    border-color: #2980b9;     
+    color: #ffffff;            
+}
+
+@keyframes shake-error {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { 
+        transform: translateX(-5px); 
+        background-color: #e74c3c;
+    }
+    40%, 80% { 
+        transform: translateX(5px); 
+        background-color: #e74c3c; 
+        border-color: #c0392b ;
+    }
+}
+
+.cell.shake-error {
+    animation: shake-error 0.4s ease-in-out;
+}
+
+@keyframes boing-reveal {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    40% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+    60% {
+        transform: scale(0.9);
+    }
+    80% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.cell.animate-reveal {
+    animation: boing-reveal 0.5s ease-out forwards;
+}

@@ -1,0 +1,51 @@
+.words-container {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 15px auto;
+}
+
+.words {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 12px;
+    background-color: rgb(21, 248, 29);
+    border: 4px solid #3db845;
+    box-shadow: 0 5px 0 rgb(46, 138, 52);
+}
+
+.word {
+    margin: 0;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    color: #ffffff;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    -webkit-text-stroke: 1px #000000;
+
+}
+
+.word.found {
+    opacity: 0.85;
+    transform: scale(0.95);
+    -webkit-text-stroke: 1px #212121;
+}
+
+.word.found-me {
+    color: #ff9233;
+    text-decoration-color: #ff9233;
+}
+
+.word.found-opponent {
+    color: #3293d3;
+    text-decoration-color: #3293d3;
+}
