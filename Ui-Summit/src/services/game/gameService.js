@@ -1,9 +1,7 @@
 import { store } from "../../state/store.js";
 import { wsManager } from "../../websocket/socket/socketManager.js";
 import { GameActions } from "../../state/gameActions.js";
-
-const FREEZE_RECOVERY_POWERS = new Set(["UNFREEZE", "IMMUNITY"]);
-const OFFENSIVE_POWERS = new Set(["FREEZE", "BLIND"]);
+import { POWERS_CONFIG } from "../../config/powers.config.js";
 
 const getTokenGameId = () => store.state.tokenGameId;
 
@@ -17,7 +15,8 @@ export const GameService = {
     canAct(actionName = "REVEAL") {
         if (store.state.currentTurnPlayerId !== store.state.user.id) return false;
 
-        if (store.state.playerEffects?.freeze && !FREEZE_RECOVERY_POWERS.has(actionName)) {
+        const isFreezeRecovery = POWERS_CONFIG[actionName]?.isFreezeRecovery;
+        if (store.state.playerEffects?.freeze && !isFreezeRecovery) {
             store.state.notification = {
                 message: "Ação bloqueada! Você está congelado 🧊.",
                 type: "me"
@@ -41,7 +40,8 @@ export const GameService = {
     playGlobalPower(powerId, powerName) {
         if (!this.canAct(powerName)) return;
 
-        const targetId = OFFENSIVE_POWERS.has(powerName)
+        const isOffensive = POWERS_CONFIG[powerName]?.isOffensive;
+        const targetId = isOffensive
             ? store.state.opponent.id
             : store.state.user.id;
 

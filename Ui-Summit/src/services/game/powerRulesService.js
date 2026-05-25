@@ -1,19 +1,19 @@
-import { POWERS } from "../../config/powers.config.js";
+import { POWERS_CONFIG } from "../../config/powers.config.js";
 
 export const PowerRulesService = {
     getConfig(powerType) {
-        return POWERS[powerType] || null;
+        return POWERS_CONFIG[powerType] || null;
     },
 
     getScope(powerType) {
-        return POWERS[powerType]?.scope || "CELL";
+        return POWERS_CONFIG[powerType]?.scope || "CELL";
     },
 
     canUseWhileFrozen(powerType) {
-        return !!POWERS[powerType]?.canUseWhileFrozen;
+        return !!POWERS_CONFIG[powerType]?.isFreezeRecovery;
     },
 
     getIcon(powerType) {
-        return POWERS[powerType]?.icon || "assets/powers/default.png";
+        return POWERS_CONFIG[powerType]?.icon || "assets/powers/default.png";
     }
 }; 

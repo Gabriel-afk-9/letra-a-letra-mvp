@@ -2,6 +2,10 @@ import { store } from "../../state/store.js";
 import { createEndGameTemplate } from "./endGame.template.js";
 
 export class EndGameComponent extends HTMLElement {
+    constructor() {
+        super();
+        this.unsubscribe = null;
+    }
     
     connectedCallback() {
         this.innerHTML = createEndGameTemplate();
@@ -9,6 +13,13 @@ export class EndGameComponent extends HTMLElement {
         this.cacheElements();
         this.setupListeners();
         this.setupSubscriptions();
+    }
+
+    disconnectedCallback() {
+        if (this.unsubscribe) {
+            this.unsubscribe();
+            this.unsubscribe = null;
+        }
     }
 
     cacheElements() {
@@ -27,7 +38,9 @@ export class EndGameComponent extends HTMLElement {
     }
 
     setupSubscriptions() {
-        store.subscribe('endGameState', (state) => this.render(state));
+        if (this.unsubscribe) return;
+
+        this.unsubscribe = store.subscribe('endGameState', (state) => this.render(state));
     }
 
     getResultClass(isWinner) {

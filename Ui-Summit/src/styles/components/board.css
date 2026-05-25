@@ -3,14 +3,39 @@
     grid-template-columns: repeat(10, 1fr);
     grid-template-rows: repeat(10, 1fr);
     gap: 2px;   
-    width: 450px;
-    height: 450px;
+    width: 100%; 
+    max-width: 450px; 
+    aspect-ratio: 1 / 1;
     margin: 0 auto;
     background-color: #ffffff;
     border: 4px solid black;
-    padding: 6px;
+    padding: 4px;
     border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);    
     position: relative;
     z-index: 10;
+    box-sizing: border-box;
+}
+
+.board-pulsing {
+    animation: boardPulseTarget 1s infinite alternate ease-in-out;
+    cursor: crosshair; 
+}
+
+.board-disabled {
+    opacity: 0.4;
+    filter: grayscale(80%);
+    pointer-events: none; 
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+@keyframes boardPulseTarget {
+    0% {
+        box-shadow: 0 0 9px rgba(46, 204, 113, 0.4);
+        border-color: rgba(46, 204, 113, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 50px rgba(46, 204, 113, 1);
+        border-color: rgba(46, 204, 113, 1);
+    }
 }

@@ -1,6 +1,6 @@
-export function createPowerSlot({ power, isSelected, isDisabled, icon, scope }) {
+export function createPowerSlot({ power, isSelected, isDisabled, icon, scope, animClass ='',rarityClass = '' }) {
     return `
-        <div class="slot has-power power-card ${isSelected} ${isDisabled}"
+        <div class="slot has-power power-card ${isSelected} ${isDisabled} ${animClass} ${rarityClass}"
              data-id="${power.id}"
              data-type="${power.name}"
              data-scope="${scope}">

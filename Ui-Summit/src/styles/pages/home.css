@@ -38,7 +38,7 @@
   margin-bottom: 0.5rem;
   color: white;
   -webkit-text-stroke: 1.5px #464646;
-  margin-top: -1rem;
+  margin-top: 0rem;
 }
 
 
@@ -73,7 +73,7 @@
   border-radius: 2rem;
   padding: 0;
   font-weight: bold;
-  font-size: clamp(15px, 6vw, 17px);
+  font-size: clamp(15px, 6vw, 20px);
   white-space: nowrap;
   color: white;
   cursor: pointer;
@@ -138,4 +138,13 @@
 
 .login-error-popup.show {
     top: 20px;
+}
+
+.button span {
+    display: inline-block;
+    transition: font-size 0.2s ease;
+}
+
+.button.is-connecting span {
+    font-size: 0.8em;
 }

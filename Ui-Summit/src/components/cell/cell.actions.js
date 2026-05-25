@@ -1,11 +1,13 @@
 import { store } from "../../state/store.js";
 import { GameService } from "../../services/game/gameService.js";
+import { UiModeService } from "../../services/ui/uiModeService.js";
+import { Selectors } from "../../state/selectors.js";
 
 export function handleCellClick(component, cell) {
-    const { user, playerEffects, currentTurnPlayerId, activePower } = store.state;
+    const activePower = Selectors.getActivePower();
     
-    const isFreeze = playerEffects?.freeze;
-    const isNotMyTurn = currentTurnPlayerId !== user?.id;
+    const isFreeze = Selectors.isFrozen();
+    const isNotMyTurn = !Selectors.isMyTurn();
 
     if (isNotMyTurn || isFreeze) {
         component.classList.add('shake-error');
@@ -20,7 +22,7 @@ export function handleCellClick(component, cell) {
     if (activePower?.scope === "CELL") {
         GameService.playTurn(cell.x, cell.y, activePower.id, activePower.type);
         store.state.activePower = null;
-        document.body.className = "";
+        UiModeService.clear();
         return;
     }
 

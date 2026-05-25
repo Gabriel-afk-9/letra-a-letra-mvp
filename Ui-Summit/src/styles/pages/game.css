@@ -1,25 +1,95 @@
 game-page {
-    display: flex;
-    width: 100vw;
-    height: 100vh;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
+    display: block;
+    width: 100vw;    
+    position: fixed; 
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;    
+    height: 100dvh; 
+    overflow: hidden; 
 }
 
 .game-layout {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
+    justify-content: flex-start;
+    gap: 12px;
     width: 100%;
-    max-width: 800px;
+    max-width: 600px;
+    height: 100%; 
     margin: 0 auto;
-    padding: 1rem;
+    padding: 15px;
     box-sizing: border-box;
     position: relative;
     z-index: 10;
+}
+
+.game-footer {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 50;
+    margin: 0;
+    padding: 0;
+}
+
+.btn-leave {
+    position: fixed;
+    left: 20px;
+    z-index: 50;
+    background-color: #e74c3c;
+    border: 4px solid #ff6b5b;
+    padding: 8px 24px;
+    border-radius: 2rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+    outline: none;
+}
+
+.btn-leave:hover {
+    transform: translateY(-2px);
+}
+
+.btn-leave:active {
+    transform: translateY(4px) scale(0.95); 
+    box-shadow: 0 2px 0 #922b21;
+}
+
+.blind-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background-color: rgba(0, 0, 0, 0.75);    
+    pointer-events: none; 
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.blind-overlay.active {
+    opacity: 1;
+}
+
+.freeze-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background: radial-gradient(circle, rgba(173, 216, 230, 0.1) 30%, rgba(0, 191, 255, 0.4) 100%);
+    box-shadow: inset 0 0 150px rgba(255, 255, 255, 0.5);
+    pointer-events: none; 
+    z-index: 9998; 
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+
+.freeze-overlay.active {
+    opacity: 1;
 }

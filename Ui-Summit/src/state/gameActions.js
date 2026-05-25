@@ -1,14 +1,36 @@
-import { store } from "./store.js";
+import { store, getDistinctAvatars } from "./store.js";
+import { UiModeService } from "../services/ui/uiModeService.js";
+import { Selectors } from "./selectors.js";
+
+let cellAnimationId = 0;
 
 export const GameActions = {
     clearGameState() {
+        const newAvatars = getDistinctAvatars();
+        store.state.tokenGameId = null;
+        store.state.currentTurnPlayerId = null;
+        store.state.board = [];
+        store.state.words = [];
+        store.state.players = [];
+        store.state.foundCellsMap = {};
+        store.state.turnEndsAt = null;
+        store.state.cellAnimation = null;
         store.state.activePower = null;
+        store.state.notification = null;
+        store.state.apiError = null;
+        store.state.gameMessage = '';
+        store.state.user = { ...store.state.user, avatar: newAvatars.p1 };
+        store.state.opponent = { id: null, name: '???', avatar: newAvatars.p2 };
+        store.state.opponentName = null;
+        store.state.pendingUnfreeze = false;
         store.state.pendingUnblind = false;
+        store.state.freezeTurnsLeft = 0;
+        store.state.blindTurnsLeft = 0;
         store.state.playerEffects = {
             blind: false, spy: false, freeze: false,
             immunity: false, detect_traps: false
         };
-        document.body.className = "";
+        UiModeService.clearGameClasses();
     },
 
     setEffect(key, value) {
@@ -20,6 +42,7 @@ export const GameActions = {
             } else {
                 document.body.classList.remove('is-frozen');
                 store.state.activePower = null;
+                UiModeService.clear();
             }
         }
     },
@@ -30,13 +53,13 @@ export const GameActions = {
         if (data.players) store.state.players = data.players;
 
         if (data.currentTurnPlayerId) {
-            store.state.currentTurnPlayerId = data.currentTurnPlayerId;
-            this.updateTurnMessage();
-        }
+        store.state.currentTurnPlayerId = data.currentTurnPlayerId;
+        this.updateTurnMessage();
+    }
     },
 
     updateTurnMessage() {
-        const isMyTurn = store.state.currentTurnPlayerId === store.state.user.id;
+        const isMyTurn = Selectors.isMyTurn();
         store.state.gameMessage = isMyTurn ? "🟢 SEU TURNO" : "🔴 TURNO DO OPONENTE";
     
         if (isMyTurn) {
@@ -54,5 +77,14 @@ export const GameActions = {
 
     setEndGameState(show, isWinner, title, message) {
         store.state.endGameState = { show, isWinner, title, message };
+    },
+
+    requestCellAnimation(type, x, y) {
+        store.state.cellAnimation = {
+            id: ++cellAnimationId,
+            type,
+            x,
+            y
+        };
     }
 };
