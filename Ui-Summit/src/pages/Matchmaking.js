@@ -150,9 +150,9 @@ export class MatchmakingPage extends HTMLElement {
             this.statusEl.innerText = "Pronto! Começando...";
             const t2 = setTimeout(() => {
                 store.state.currentPage = 'game';
-            }, 800);
+            }, 300);
             this.timers.push(t2);
-        }, 2500);
+        }, 1200);
 
         this.timers.push(t1);
     }

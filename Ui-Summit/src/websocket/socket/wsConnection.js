@@ -6,7 +6,7 @@ export const wsConnection = {
     connect(token, onMessage) {
         this.disconnect();
         this.socket = new WebSocket(`${AppConfig.WS_URL}?token=${token}`);
-        this.socket.onopen = () => this.send({ type: "MATCHMAKING_GAME", gameMode: "CATACLYSM" });
+        this.socket.onopen = () => this.send({ type: "MATCHMAKING_GAME", gameMode: "INSANE" });
         this.socket.onmessage = (event) => onMessage(JSON.parse(event.data));
     },
 

@@ -1,11 +1,10 @@
-import { store } from "../../state/store.js";
+import { store, getAvatarHash } from "../../state/store.js";
 import { GameActions } from "../../state/gameActions.js";
 import { processInternalEvents } from "../handlers/internalEvents.js";
 import { UiModeService } from "../../services/ui/uiModeService.js";
 import { Selectors } from "../../state/selectors.js";
 
 let turnDurationMs = 30_000;
-
 
 const eventStrategies = {
     "MATCHMAKING_GAME": (msg, userId, callbacks) => {
@@ -17,22 +16,7 @@ const eventStrategies = {
         let oppAvatar = "assets/avatar/avatar-2.png";
 
         if (myData && opponentData) {
-            const getHash = (str) => {
-                let sum = 0;
-                for (let i = 0; i < str.length; i++) sum += str.charCodeAt(i);
-                return sum;
-            };
-
-            let myAvatarId = (getHash(myData.id) % 4) + 1;
-            let oppAvatarId = (getHash(opponentData.id) % 4) + 1;
-
-            if (myAvatarId === oppAvatarId) {
-                if (myData.id > opponentData.id) myAvatarId = (myAvatarId % 4) + 1;
-                else oppAvatarId = (oppAvatarId % 4) + 1;
-            }
-
-            store.state.user = { ...store.state.user, avatar: `assets/avatar/avatar-${myAvatarId}.png` };
-            oppAvatar = `assets/avatar/avatar-${oppAvatarId}.png`;
+            oppAvatar = `assets/avatar/avatar-${getAvatarHash(opponentData.id)}.png`
         }
 
         store.state.tokenGameId = msg.tokenGameId;
@@ -43,6 +27,9 @@ const eventStrategies = {
     },
 
     "PLAYER_ACTION_RESULT": (msg, userId, callbacks) => {
+        store.state.activePower = null;
+        if (UiModeService && UiModeService.clear) UiModeService.clear();
+        document.body.className = ""; 
         if (GameActions.updateTurnMessage) GameActions.updateTurnMessage();
         callbacks.onResetWatchdog();
     },
@@ -78,17 +65,32 @@ const eventStrategies = {
     "ERROR": (msg) => {
         if (msg.message === "stepped_on_trap" && msg.data?.x !== undefined) {
             GameActions.requestCellAnimation("trap", msg.data.x, msg.data.y);
+            return;
+        }
+        if (msg.message === "player_are_immune" || msg.message.includes("imune")) {
+            
+            store.state.notification = { 
+                message: "Ataque bloqueado! O oponente está imune 🛡️", 
+                type: "opponent" 
+            };
+            
+            if (UiModeService && UiModeService.clear) UiModeService.clear();
+            document.body.className = "";
+            
+            return;
         }
 
         store.state.apiError = msg.message;
         if (store.notify) store.notify('apiError');
+
         store.state.activePower = null;
-        UiModeService.clear();
+        if (UiModeService && UiModeService.clear) UiModeService.clear();
+        document.body.className = "";
 
         if (msg.message === "player_not_in_game") {
             GameActions.clearGameState();
             GameActions.setEndGameState(
-                true, true, "🏃 OPONENTE FUGIU",
+                true, true, "OPONENTE FUGIU",
                 "Você venceu! O oponente foi desconectado."
             );
         }
@@ -99,22 +101,44 @@ function handleDisconnect() {
     if (!store.state.tokenGameId) return;
     GameActions.clearGameState();
     GameActions.setEndGameState(
-        true, true, "🏃 OPONENTE FUGIU",
+        true, true, "OPONENTE FUGIU",
         "Você venceu por W.O.! O oponente saiu da partida."
     );
 }
 
 export const wsEventHandler = {
     handle(msg, userId, callbacks) {
-        const newTurnId     = msg.currentTurnPlayerId    || msg.data?.currentTurnPlayerId;
-        const newTurnEndsAt = msg.turnEndsAt             || msg.data?.turnEndsAt;
+        const oldTurnId = store.state.currentTurnPlayerId;
+        const newTurnId = msg.currentTurnPlayerId || msg.data?.currentTurnPlayerId;
+        const newTurnEndsAt = msg.turnEndsAt || msg.data?.turnEndsAt;
 
-        if (newTurnId)     store.state.currentTurnPlayerId = newTurnId;
+        if (newTurnId) {
+            store.state.currentTurnPlayerId = newTurnId;
+
+            // 👇 DETECTOR DE MUDANÇA DE TURNO (À PROVA DE FALHAS) 👇
+            // Se o turno MUDOU e agora é a SUA VEZ, diminui a contagem dos efeitos
+            if (newTurnId !== oldTurnId && newTurnId === store.state.user.id) {
+                
+                if (store.state.playerEffects?.freeze) {
+                    store.state.freezeTurnsLeft = (store.state.freezeTurnsLeft || 3) - 1;
+                    if (store.state.freezeTurnsLeft <= 0) {
+                        GameActions.setEffect('freeze', false); // Descongela na hora!
+                    }
+                }
+
+                if (store.state.playerEffects?.immunity) {
+                    store.state.immunityTurnsLeft = (store.state.immunityTurnsLeft || 5) - 1;
+                    if (store.state.immunityTurnsLeft <= 0) {
+                        GameActions.setEffect('immunity', false); // Estoura a bolha na hora!
+                    }
+                }
+            }
+            // 👆 ------------------------------------------------ 👆
+        }
 
         if (newTurnEndsAt) {
             const remaining = new Date(newTurnEndsAt).getTime() - Date.now();
             if (remaining > 1000) turnDurationMs = remaining;
-
             store.state.turnEndsAt = newTurnEndsAt;
         }
 

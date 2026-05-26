@@ -3,6 +3,7 @@ import { wsConnection } from "./wsConnection.js";
 import { wsWatchdog } from "./wsWatchdog.js";
 import { wsEventHandler } from "./wsEventHandler.js";
 import { Selectors } from "../../state/selectors.js";
+import { GameActions } from "../../state/gameActions.js";
 
 export const wsManager = {
     connect(token, userId) {
@@ -10,7 +11,7 @@ export const wsManager = {
             wsEventHandler.handle(msg, userId, {
                 onMatchFound: () => wsWatchdog.reset(() => this.handleWatchdogExpire()),
                 onResetWatchdog: () => wsWatchdog.reset(() => this.handleWatchdogExpire()),
-                onGameEnd: (message) => this.endGame(message),
+                onGameEnd: (isWinner, title, message) => this.endGame(isWinner, title, message),
             });
         });
     },
@@ -18,17 +19,18 @@ export const wsManager = {
     handleWatchdogExpire() {
         if (!Selectors.hasActiveGame()) return;
         const isMyTurn = Selectors.isMyTurn();
-        this.endGame(isMyTurn
-            ? "Você perdeu por inatividade."
-            : "🏆 Você venceu! O oponente foi desconectado."
+        
+        this.endGame(
+            !isMyTurn, 
+            isMyTurn ? "TEMPO ESGOTADO" : "VOCÊ VENCEU!",
+            isMyTurn ? "Você perdeu por inatividade." : "O oponente foi desconectado por inatividade."
         );
     },
 
-    endGame(message) {
+    endGame(isWinner, title, message) {
         wsWatchdog.stop();
-        alert(message);
         store.state.tokenGameId = null;
-        store.state.currentPage = 'home';
+        GameActions.setEndGameState(true, isWinner, title, message);
     },
 
     send: (payload) => wsConnection.send(payload),
@@ -46,20 +48,20 @@ document.addEventListener("visibilitychange", () => {
             store.state.tokenGameId = null;
             store.state.opponent = { id: null, name: '???' };
             
-            alert("Conexão perdida porque o navegador foi minimizado. Voltando ao menu inicial.");
-            store.state.currentPage = 'home';
+            GameActions.setEndGameState(
+                true, false, "DESCONECTADO", 
+                "Conexão perdida porque o jogo ficou em segundo plano."
+            );
         }
     }
 });
 
 window.addEventListener("pagehide", () => {
     if (store.state.tokenGameId && wsConnection.socket?.readyState === WebSocket.OPEN) {
-        
         wsConnection.send({
             type: "LEFT_GAME",
             tokenGameId: store.state.tokenGameId
         });
-        
         wsConnection.socket.close();
     }
 });

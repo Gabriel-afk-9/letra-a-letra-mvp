@@ -16,7 +16,11 @@
     letter-spacing: 1px;
     pointer-events: none;
     -webkit-text-stroke: 0.5px #000000;    
-    opacity: 0; 
+    opacity: 0;     
+    width: max-content;
+    max-width: 90vw;
+    box-sizing: border-box;
+    word-wrap: break-word;
 }
 
 .toast.show {
@@ -37,4 +41,13 @@
 .toast.opponent {
     background-color: #409ddb;
     border: 3px solid #2980b9;
+}
+
+@media (max-width: 480px) {
+    .toast {
+        font-size: 1rem;
+        padding: 10px 15px;
+        -webkit-text-stroke: 0px;
+        text-shadow: 0px 2px 4px rgba(0,0,0,0.8);
+    }
 }

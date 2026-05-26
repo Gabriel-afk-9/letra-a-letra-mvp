@@ -1,7 +1,7 @@
-const BASE_URL = "http://192.168.18.18:8080";
+import { AppConfig } from "../config/app.config.js";
 
 export const http = {
-    post: (path, body, token) => fetch(`${BASE_URL}${path}`, {
+    post: (path, body, token) => fetch(`${AppConfig.API_URL}${path}`, {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
@@ -10,7 +10,7 @@ export const http = {
         body: JSON.stringify(body)
     }).then(r => r.json()),
 
-    patch: (path, body, token) => fetch(`${BASE_URL}${path}`, {
+    patch: (path, body, token) => fetch(`${AppConfig.API_URL}${path}`, {
         method: "PATCH",
         headers: { 
             "Content-Type": "application/json",

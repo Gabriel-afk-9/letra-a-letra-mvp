@@ -52,35 +52,88 @@
     font-weight: bold;
 }
 
+
 .end-modal button {
-    padding: 12px 30px;
-    font-size: 1.2rem;
-    font-weight: bold;
+    width: fit-content;
+    min-width: 200px;
+    height: 53px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 2rem;
+    padding: 0 2rem;
+    font-weight: 1000;
+    font-size: clamp(15px, 6vw, 20px);
+    white-space: nowrap;
     color: white;
-    border: none;
-    border-radius: 25px;
     cursor: pointer;
-    transition: all 0.2s;
-    text-transform: uppercase;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    outline: none;
+    margin: 2rem auto 0;
 }
 
-.end-modal button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+
+.end-modal button:active,
+.end-modal button.btn-clicked {
+    transform: translateY(4px) scale(0.95);
 }
+
 
 .end-overlay.winner .end-modal {
     border: 5px solid #f1c40f;
     background: linear-gradient(145deg, #ffffff, #fff3e0);
 }
-.end-overlay.winner h1 { color: #f39c12; }
-.end-overlay.winner button { background-color: #f39c12; }
-.end-overlay.winner button:hover { background-color: #e67e22; }
+.end-overlay.winner h1 { color: #f1c40f; -webkit-text-stroke: 1.4px #000000; }
+
+.end-overlay.winner button { 
+    background-color: #f1c40f;
+    border: 5px solid #f9e79f;
+    box-shadow: 0 6px 0 #b7950b;
+}
+.end-overlay.winner button:hover { 
+    border-color: #f9e79f;
+    transform: translateY(-2px);
+}
+
+.end-overlay.winner button:active,
+.end-overlay.winner button.btn-clicked {
+    box-shadow: 0 2px 0 #b7950b;
+}
+
 
 .end-overlay.loser .end-modal {
     border: 5px solid #e74c3c;
     background: linear-gradient(145deg, #ffffff, #ffeaea);
 }
-.end-overlay.loser h1 { color: #c0392b; }
-.end-overlay.loser button { background-color: #e74c3c; }
-.end-overlay.loser button:hover { background-color: #c0392b; }
+.end-overlay.loser h1 { color: #e74c3c; -webkit-text-stroke: 1.4px #000000; }
+
+.end-overlay.loser button { 
+    background-color: #e74c3c;
+    border: 5px solid #b34236;
+    box-shadow: 0 6px 0 #943126;
+}
+.end-overlay.loser button:hover { 
+    border-color: #9c3930;
+    transform: translateY(-2px);
+}
+
+.end-overlay.loser button:active,
+.end-overlay.loser button.btn-clicked {
+    box-shadow: 0 2px 0 #943126;
+}
+
+
+#btn-cancel-leave {
+    background-color: #95a5a6 !important;
+    border-color: #bdc3c7 !important;
+    box-shadow: 0 6px 0 #7f8c8d !important;
+}
+#btn-cancel-leave:hover {
+    background-color: #7f8c8d !important;
+    border-color: #d5dbdb !important;
+}
+#btn-cancel-leave:active,
+#btn-cancel-leave.btn-clicked {
+    box-shadow: 0 2px 0 #7f8c8d !important;
+}

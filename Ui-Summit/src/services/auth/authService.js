@@ -1,5 +1,6 @@
-import { store } from "../../state/store.js";
+import { store, getAvatarHash } from "../../state/store.js";
 import { http } from "../http.js";
+
 
 const DEFAULT_PASSWORD = "12345678";
 const toEmail = (name) => `${name}@gmail.com`;
@@ -26,7 +27,8 @@ export const AuthService = {
             store.state.user = {
                 id: data.id,
                 token: data.token,
-                name
+                name,
+                avatar: `assets/avatar/avatar-${getAvatarHash(data.id)}.png`
             };
             return true;
 

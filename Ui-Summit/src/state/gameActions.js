@@ -24,8 +24,10 @@ export const GameActions = {
         store.state.opponentName = null;
         store.state.pendingUnfreeze = false;
         store.state.pendingUnblind = false;
+        store.state.pendingUnimmunity = false;
         store.state.freezeTurnsLeft = 0;
         store.state.blindTurnsLeft = 0;
+        store.state.immunityTurnsLeft = 0;
         store.state.playerEffects = {
             blind: false, spy: false, freeze: false,
             immunity: false, detect_traps: false
@@ -62,24 +64,29 @@ export const GameActions = {
         const isMyTurn = Selectors.isMyTurn();
         store.state.gameMessage = isMyTurn ? "🟢 SEU TURNO" : "🔴 TURNO DO OPONENTE";
     
-        if (isMyTurn) {
-            if (store.state.pendingUnfreeze) {
-                this.setEffect('freeze', false);
-                store.state.pendingUnfreeze = false;
-            }
+        // if (isMyTurn) {
+        //     if (store.state.pendingUnfreeze) {
+        //         this.setEffect('freeze', false);
+        //         store.state.pendingUnfreeze = false;
+        //     }
 
-            if (store.state.pendingUnblind) {
-                    this.setEffect('blind', false);
-                    store.state.pendingUnblind = false;
-            }
-        }
+        //     if (store.state.pendingUnblind) {
+        //             this.setEffect('blind', false);
+        //             store.state.pendingUnblind = false;
+        //     }
+        // }
+
+        // if (store.state.pendingUnimmunity) {
+        //         this.setEffect('immunity', false);
+        //         store.state.pendingUnimmunity = false;
+        // }
     },  
 
     setEndGameState(show, isWinner, title, message) {
         store.state.endGameState = { show, isWinner, title, message };
     },
 
-    requestCellAnimation(type, x, y) {
+    requestCellAnimation(type, x, y) {  
         store.state.cellAnimation = {
             id: ++cellAnimationId,
             type,

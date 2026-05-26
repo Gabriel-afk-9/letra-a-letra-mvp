@@ -27,7 +27,7 @@ class ReactiveStore {
 }
 
 export function getDistinctAvatars() {
-    const ids = [1, 2, 3, 4];
+    const ids = [1, 2, 3, 4, 5, 6, 7];
     for (let i = ids.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [ids[i], ids[j]] = [ids[j], ids[i]];
@@ -36,6 +36,15 @@ export function getDistinctAvatars() {
         p1: `assets/avatar/avatar-${ids[0]}.png`,
         p2: `assets/avatar/avatar-${ids[1]}.png`
     };
+}
+
+
+export function getAvatarHash(id) {
+    if (!id) return 1;
+    let sum = 0;
+    const str = String(id);
+    for (let i = 0; i < str.length; i++) sum += str.charCodeAt(i);
+    return (sum % 7) + 1;
 }
 
 const initialAvatars = getDistinctAvatars();
@@ -66,8 +75,10 @@ export const store = new ReactiveStore({
     activePower: null,
     pendingUnfreeze: false,
     pendingUnblind: false,
+    pendingUnimmunity: false,
     freezeTurnsLeft: 0,
     blindTurnsLeft: 0,
+    immunityTurnsLeft: 0,
     playerEffects: {
         blind: false,
         spy: false,

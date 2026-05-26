@@ -165,6 +165,16 @@
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
 }
 
+.cell.trap-me {
+    background-color: #ff8922;
+    border-color: #e67e22;
+}
+
+.cell.trap-detected {
+    background-color: #409ddb;
+    border-color: #2980b9;
+}
+
 .animate-trap-found {
     animation: revealAndFade 2.0s ease-out forwards;
 }
