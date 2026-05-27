@@ -38,7 +38,7 @@ game-page {
 }
 
 .btn-leave {
- width: 40%;
+ width: 7rem;
   height: 53px;
   display: flex;
   align-items: center;
@@ -54,9 +54,9 @@ game-page {
   transition: transform 0.1s ease, box-shadow 0.2s ease;
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
   outline: none;
-  background-color: rgb(240, 125, 34);
-  border: 5px solid rgb(255, 143, 55);
-  box-shadow: 0 6px 0 rgb(148, 97, 57);
+  background-color: #f7362c;
+  border: 5px solid #8e323287;
+  box-shadow: 0 6px 0 #7E4848;
   margin-top: 2rem;
 }
 
