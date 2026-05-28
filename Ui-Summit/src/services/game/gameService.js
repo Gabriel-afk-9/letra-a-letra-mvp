@@ -13,6 +13,12 @@ const buildActionPayload = (x, y, powerId, powerName) =>
 export const GameService = {
 
     canAct(actionName = "REVEAL") {
+
+        if (store.state.isActionLocked) {
+            console.log("⏳ Ação ignorada: Aguardando a animação de turno.");
+            return false;
+        }
+
         if (store.state.currentTurnPlayerId !== store.state.user.id) return false;
 
         const isFreezeRecovery = POWERS_CONFIG[actionName]?.isFreezeRecovery;
@@ -30,6 +36,8 @@ export const GameService = {
     playTurn(x, y, powerId = null, powerName = null) {
         if (!this.canAct(powerName ?? "REVEAL")) return;
 
+        store.state.isActionLocked = true;
+
         wsManager.send({
             type: "PLAYER_ACTION",
             tokenGameId: getTokenGameId(),
@@ -39,6 +47,9 @@ export const GameService = {
 
     playGlobalPower(powerId, powerName) {
         if (!this.canAct(powerName)) return;
+
+        // 👇 2. Trava o front-end instantaneamente após o clique
+        store.state.isActionLocked = true;
 
         const isOffensive = POWERS_CONFIG[powerName]?.isOffensive;
         const targetId = isOffensive

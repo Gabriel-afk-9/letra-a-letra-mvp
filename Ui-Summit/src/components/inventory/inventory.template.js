@@ -13,15 +13,7 @@ export function createEmptySlot() {
     return `<div class="slot"></div>`;
 }
 
+// 👇 Botões deletados! Agora a função não renderiza mais nada na tela.
 export function createActionButtons(activePower) {
-    if (!activePower) return '';
-
-    let html = `<div class="active-power-actions">`;
-    if (activePower.scope === "GLOBAL") {
-        html += `<button id="use-btn" class="use button">Usar Poder</button>`;
-    }
-    html += `<button id="discard-btn" class="discard button">Descartar</button>`;
-    html += `</div>`;
-    
-    return html;
+    return ''; 
 }

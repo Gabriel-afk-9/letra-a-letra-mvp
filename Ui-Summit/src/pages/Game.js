@@ -23,9 +23,7 @@ export class GamePage extends HTMLElement {
                 <board-component></board-component>
                 <inventory-component></inventory-component>
                 
-                <div class="game-footer">
-                    <button id="btn-leave" class="btn-leave">Sair</button>
-                </div>
+              
                 
                 <end-modal></end-modal>
                 <div id="freeze-overlay" class="freeze-overlay"></div>
@@ -34,7 +32,7 @@ export class GamePage extends HTMLElement {
 
                 <div id="confirm-leave-overlay" class="end-overlay hidden loser" style="z-index: 10001;">
                     <div class="end-modal">
-                        <h1>⚠️ ATENÇÃO</h1>
+                        <h1>ATENÇÃO</h1>
                         <p>Tem certeza que deseja abandonar a partida?<br>Você receberá uma <b>derrota automática</b>.</p>
                         <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">
                             <button id="btn-cancel-leave" style="background-color: #95a5a6 !important;">Voltar ao Jogo</button>
@@ -121,3 +119,7 @@ export class GamePage extends HTMLElement {
     }
 }
 customElements.define("game-page", GamePage);
+
+//   <div class="game-footer">
+//                     <button id="btn-leave" class="btn-leave">Sair</button>
+//                 </div>

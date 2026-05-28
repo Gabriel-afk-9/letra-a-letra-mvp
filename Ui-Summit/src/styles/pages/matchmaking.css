@@ -49,7 +49,7 @@
     border-radius: 1.3rem;
     padding: 1.5rem 3rem;
     border: 3px solid rgba(255,255,255,0.6);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    /* box-shadow: 0 4px 12px rgba(0,0,0,0.3); */
     transition: background 0.4s ease, box-shadow 0.4s ease;
     width: 320px; 
     max-width: 90vw;
@@ -63,7 +63,7 @@
 
 .mm-title-badge--found {
     background: #3bd051 !important;
-    box-shadow: 0 0 20px rgba(61,190,80,0.6), 0 4px 12px rgba(0,0,0,0.3) !important;
+    /* box-shadow: 0 0 20px rgba(61,190,80,0.6), 0 4px 12px rgba(0,0,0,0.3) !important; */
 }
 
 .mm-title-text {

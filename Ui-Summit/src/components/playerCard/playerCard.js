@@ -107,6 +107,13 @@ export class PlayerCard extends HTMLElement {
         setTimeout(() => {
             this.isAnimating = false;
             this.currentlyShowingId = newId;
+
+            // 👇 CORREÇÃO DO CARD PRESO 👇
+            // Se o estado global mudou enquanto a animação rodava, 
+            // chama a transição novamente para alinhar o card com o turno correto!
+            if (store.state.currentTurnPlayerId !== newId) {
+                console.log("🔄 [Card] Sincronia recuperada! Virando para o turno atual:", store.state.currentTurnPlayerId);
+                this.handleTurnChange(store.state.currentTurnPlayerId)};
         }, ANIMATION_DURATION);
     }
 

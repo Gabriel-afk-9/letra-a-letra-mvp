@@ -1,4 +1,4 @@
-const SERVER_HOST = "192.168.18.18:8080";
+const SERVER_HOST = "10.62.125.44:8080";
 
 export const AppConfig = {
     API_URL: `http://${SERVER_HOST}`,

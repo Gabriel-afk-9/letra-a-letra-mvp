@@ -79,6 +79,7 @@ export const store = new ReactiveStore({
     freezeTurnsLeft: 0,
     blindTurnsLeft: 0,
     immunityTurnsLeft: 0,
+    isActionLocked: false,
     playerEffects: {
         blind: false,
         spy: false,

@@ -40,9 +40,9 @@ export class CellComponent extends HTMLElement {
     }
 }
 export function playTrapTriggerAnimation(cellElement) {
-    console.log("🎬 [ANIMAÇÃO TRAP] Tentando tocar na célula:", cellElement);
+    // console.log("🎬 [ANIMAÇÃO TRAP] Tentando tocar na célula:", cellElement);
     if (!cellElement) {
-        console.error("❌ [ANIMAÇÃO TRAP] Falhou! Nenhuma célula foi passada para a função.");
+        // console.error("❌ [ANIMAÇÃO TRAP] Falhou! Nenhuma célula foi passada para a função.");
         return;
     }
 

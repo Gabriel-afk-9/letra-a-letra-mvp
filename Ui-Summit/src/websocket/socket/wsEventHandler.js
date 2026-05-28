@@ -68,15 +68,12 @@ const eventStrategies = {
             return;
         }
         if (msg.message === "player_are_immune" || msg.message.includes("imune")) {
-            
             store.state.notification = { 
                 message: "Ataque bloqueado! O oponente está imune 🛡️", 
                 type: "opponent" 
             };
-            
             if (UiModeService && UiModeService.clear) UiModeService.clear();
             document.body.className = "";
-            
             return;
         }
 
@@ -112,28 +109,11 @@ export const wsEventHandler = {
         const newTurnId = msg.currentTurnPlayerId || msg.data?.currentTurnPlayerId;
         const newTurnEndsAt = msg.turnEndsAt || msg.data?.turnEndsAt;
 
+        // Verifica de forma absoluta se a vez mudou de um jogador para o outro
+        const turnChanged = newTurnId && newTurnId !== oldTurnId;
+
         if (newTurnId) {
             store.state.currentTurnPlayerId = newTurnId;
-
-            // 👇 DETECTOR DE MUDANÇA DE TURNO (À PROVA DE FALHAS) 👇
-            // Se o turno MUDOU e agora é a SUA VEZ, diminui a contagem dos efeitos
-            if (newTurnId !== oldTurnId && newTurnId === store.state.user.id) {
-                
-                if (store.state.playerEffects?.freeze) {
-                    store.state.freezeTurnsLeft = (store.state.freezeTurnsLeft || 3) - 1;
-                    if (store.state.freezeTurnsLeft <= 0) {
-                        GameActions.setEffect('freeze', false); // Descongela na hora!
-                    }
-                }
-
-                if (store.state.playerEffects?.immunity) {
-                    store.state.immunityTurnsLeft = (store.state.immunityTurnsLeft || 5) - 1;
-                    if (store.state.immunityTurnsLeft <= 0) {
-                        GameActions.setEffect('immunity', false); // Estoura a bolha na hora!
-                    }
-                }
-            }
-            // 👆 ------------------------------------------------ 👆
         }
 
         if (newTurnEndsAt) {
@@ -150,7 +130,39 @@ export const wsEventHandler = {
             GameActions.syncGameState(msg.data);
         }
 
+        // Processa as rotas normais (PLAYER_ACTION_RESULT, ERROR, etc)
         this.routeEvent(msg, userId, callbacks);
+
+
+        // =========================================================================
+        // 🔥 O SEMÁFORO SIMPLIFICADO (Controle absoluto do Delay) 🔥
+        // =========================================================================
+        if (turnChanged) {
+            // SINAL VERMELHO: Turno mudou! Trava o jogo para os dois por 1 segundo
+            store.state.isActionLocked = true;
+            
+            setTimeout(() => {
+                store.state.isActionLocked = false;
+            }, 1000);
+
+            // Reduz as penalidades se a vez passou pra VOCÊ
+            if (newTurnId === store.state.user.id) {
+                if (store.state.playerEffects?.freeze) {
+                    store.state.freezeTurnsLeft = (store.state.freezeTurnsLeft || 3) - 1;
+                    if (store.state.freezeTurnsLeft <= 0) GameActions.setEffect('freeze', false); 
+                }
+
+                if (store.state.playerEffects?.immunity) {
+                    store.state.immunityTurnsLeft = (store.state.immunityTurnsLeft || 5) - 1;
+                    if (store.state.immunityTurnsLeft <= 0) GameActions.setEffect('immunity', false); 
+                }
+            }
+        } 
+        else if (msg.event === "PLAYER_ACTION_RESULT" || msg.event === "ERROR") {
+            // SINAL VERDE: O turno NÃO mudou e a sua ação terminou (ou deu erro). 
+            // Libera instantaneamente para você clicar de novo!
+            store.state.isActionLocked = false;
+        }
     },
 
     routeEvent(msg, userId, callbacks) {
